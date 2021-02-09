@@ -8,6 +8,7 @@ data:
   configuration.py: |
     import re
     import yaml
+    import os
 
     def _load_yaml():
       with open('/run/config/netbox/netbox.yaml', 'r') as f:
@@ -20,18 +21,12 @@ data:
       with open(path, 'r') as f:
         return f.read()
 
+    def _load_env_secret(name):
+      return os.getenv(name)
+
     _load_yaml()
 
-    DATABASE['PASSWORD'] = _load_secret(
-      {{- if .Values.postgresql.enabled -}}
-      'database', 'postgresql-password'
-      {{- else -}}
-      {{- if .Values.externalDatabase.existingSecretName -}}
-      'database', {{ .Values.externalDatabase.existingSecretKey | squote }}
-      {{- else -}}
-      'netbox', 'db_password'
-      {{- end -}}
-      {{- end -}})
+    DATABASE['PASSWORD'] = _load_env_secret('POSTGRES_PASSWORD')
     NAPALM_PASSWORD = _load_secret('netbox', 'napalm_password')
     REDIS['tasks']['PASSWORD'] = _load_secret(
       {{- if .Values.redis.enabled -}}

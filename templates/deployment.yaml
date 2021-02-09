@@ -64,6 +64,15 @@ spec:
               value: {{ .Values.superuser.email | quote }}
             - name: SKIP_STARTUP_SCRIPTS
               value: {{ .Values.skipStartupScripts | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.postgresql.enabled }}
+                  name: {{ include "netbox.postgresql.fullname" . | quote }}
+                  {{- else }}
+                  name: {{ .Values.externalDatabase.existingSecretName | quote }}
+                  {{- end }}
+                  key: postgresql-password
             {{- with .Values.extraEnvs }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
